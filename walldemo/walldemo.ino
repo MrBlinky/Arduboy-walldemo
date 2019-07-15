@@ -40,7 +40,7 @@ void  drawWalls()
     {
      //// draw outlined wall tiles ////
      if (getTile(x,y) == WALL)
-     { asm volatile("dbg:\n");
+     {
        uint8_t wall=0;
        if (getTile(x + 0, y - 8) == WALL) wall += 0x01;
        if (getTile(x - 8, y + 0) == WALL) wall += 0x02;
