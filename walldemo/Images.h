@@ -2,12 +2,12 @@
 
 #include <stdint.h>
 
-constexpr uint8_t cursorsprite_width = 8;
-constexpr uint8_t cursorsprite_height = 8;
+constexpr uint8_t cursorSpriteWidth = 8;
+constexpr uint8_t cursorSpriteHeight = 8;
 
-const uint8_t cursorsprite[] PROGMEM
+const uint8_t cursorSprite[] PROGMEM
 {
-	cursorsprite_width, cursorsprite_height,
+	cursorSpriteWidth, cursorSpriteHeight,
 
 	// Frame 0
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -22,12 +22,12 @@ const uint8_t cursorsprite[] PROGMEM
 	0x00, 0x00, 0x00, 0x18, 0x18, 0x3C, 0x24, 0x7E, 0x24, 0x7E, 0x18, 0x3C, 0x00, 0x18, 0x00, 0x00,
 };
 
-constexpr uint8_t leftwalltiles_width = 4;
-constexpr uint8_t leftwalltiles_height = 8;
+constexpr uint8_t leftWallTilesWidth = 4;
+constexpr uint8_t leftWallTilesHeight = 8;
 
-const uint8_t leftwalltiles[] PROGMEM
+const uint8_t leftWallTiles[] PROGMEM
 {
-	leftwalltiles_width, leftwalltiles_height,
+	leftWallTilesWidth, leftWallTilesHeight,
 
 	0x00, 0x7E, 0x7E, 0x66, 
 
@@ -56,12 +56,12 @@ const uint8_t leftwalltiles[] PROGMEM
 	0x00, 0x00, 0x00, 0x00,
 };
 
-constexpr uint8_t rightwalltiles_width = 4;
-constexpr uint8_t rightwalltiles_height = 8;
+constexpr uint8_t rightWallTilesWidth = 4;
+constexpr uint8_t rightWallTilesHeight = 8;
 
-const uint8_t rightwalltiles[] PROGMEM
+const uint8_t rightWallTiles[] PROGMEM
 {
-	rightwalltiles_width, rightwalltiles_height,
+	rightWallTilesWidth, rightWallTilesHeight,
 
 	0x66, 0x7E, 0x7E, 0x00, 
 
@@ -90,12 +90,12 @@ const uint8_t rightwalltiles[] PROGMEM
 	0x00, 0x00, 0x00, 0x00,
 };
 
-constexpr uint8_t leftwalltiles2_width = 4;
-constexpr uint8_t leftwalltiles2_height = 8;
+constexpr uint8_t leftWallTiles2Width = 4;
+constexpr uint8_t leftWallTiles2Height = 8;
 
-const uint8_t leftwalltiles2[] PROGMEM
+const uint8_t leftWallTiles2[] PROGMEM
 {
-	leftwalltiles2_width, leftwalltiles2_height,
+	leftWallTiles2Width, leftWallTiles2Height,
 
 	0x00, 0x3C, 0x7E, 0x66, 
 
@@ -124,12 +124,12 @@ const uint8_t leftwalltiles2[] PROGMEM
 	0x00, 0x00, 0x00, 0x00,
 };
 
-constexpr uint8_t rightwalltiles2_width = 4;
-constexpr uint8_t rightwalltiles2_height = 8;
+constexpr uint8_t rightWallTiles2Width = 4;
+constexpr uint8_t rightWallTiles2Height = 8;
 
-const uint8_t rightwalltiles2[] PROGMEM
+const uint8_t rightWallTiles2[] PROGMEM
 {
-	rightwalltiles2_width, rightwalltiles2_height,
+	rightWallTiles2Width, rightWallTiles2Height,
 
 	0x66, 0x7E, 0x3C, 0x00, 
 

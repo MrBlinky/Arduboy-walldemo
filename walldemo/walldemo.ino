@@ -35,8 +35,8 @@ const uint8_t PROGMEM wallDecodeTable[] =
 Arduboy2Base arduboy;
 uint8_t borderTile; 
 Point cursor;
-bool cursor_changed;
-uint8_t cursor_frame;
+bool cursorChanged;
+uint8_t cursorFrame;
 
 void setup()
 {
@@ -79,7 +79,7 @@ void drawWalls()
 			if (getTile(x - 8, y + 8) == WALL) tile = tile / 16;
 				tile &= 0x0F;
 
-			Sprites::drawSelfMasked(x, y, leftwalltiles, tile);
+			Sprites::drawSelfMasked(x, y, leftWallTiles, tile);
 
 			// Clear left walls
 			wall &= 0x05;
@@ -97,7 +97,7 @@ void drawWalls()
 
 			tile &= 0x0F;
 
-			Sprites::drawSelfMasked(x + 4, y, rightwalltiles, tile);
+			Sprites::drawSelfMasked(x + 4, y, rightWallTiles, tile);
 		}
 }
 
@@ -111,32 +111,32 @@ void loop()
 		
 	// 4 frames
 	if (arduboy.everyXFrames(7))
-		cursor_frame = ((cursor_frame + 1) % 4);
+		cursorFrame = ((cursorFrame + 1) % 4);
 	
-	cursor_changed = false;
+	cursorChanged = false;
 	
 	if (arduboy.justPressed(UP_BUTTON))
 	{
 		--cursor.y;
-		cursor_changed = true;
+		cursorChanged = true;
 	}
 	
 	if (arduboy.justPressed(DOWN_BUTTON))
 	{
 		++cursor.y;
-		cursor_changed = true;
+		cursorChanged = true;
 	}
 	
 	if (arduboy.justPressed(LEFT_BUTTON))
 	{
 		--cursor.x;
-		cursor_changed = true;
+		cursorChanged = true;
 	}
 	
 	if (arduboy.justPressed(RIGHT_BUTTON))
 	{
 		++cursor.x;
-		cursor_changed = true;
+		cursorChanged = true;
 	}
 	
 	//keep y in range 0..7
@@ -145,7 +145,7 @@ void loop()
 	//keep x in range 0..15
 	cursor.x %= 16;
 	
-	if (arduboy.justPressed(A_BUTTON) || (arduboy.pressed(A_BUTTON) && cursor_changed))
+	if (arduboy.justPressed(A_BUTTON) || (arduboy.pressed(A_BUTTON) && cursorChanged))
 		mapBuffer[cursor.y][cursor.x] ^= WALL;
 		
 	if (arduboy.justPressed(B_BUTTON))
@@ -153,7 +153,7 @@ void loop()
 
 	drawWalls();
 	
-	Sprites::drawPlusMask(cursor.x * 8, cursor.y * 8, cursorsprite, cursor_frame);
+	Sprites::drawPlusMask(cursor.x * 8, cursor.y * 8, cursorSprite, cursorFrame);
 	
 	arduboy.display(CLEAR_BUFFER);
 }
