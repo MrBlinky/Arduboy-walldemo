@@ -5,9 +5,7 @@
 // B button to toggle wall / no-wall border 
 
 #include <Arduboy2.h>
-#include "leftwalltiles.h"
-#include "rightwalltiles.h"
-#include "cursorsprite.h"
+#include "Images.h"
 #include "map.h"
 #include "tables.h"
 
