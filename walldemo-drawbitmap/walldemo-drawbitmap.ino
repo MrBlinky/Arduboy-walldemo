@@ -1,6 +1,9 @@
 // auto wall outline demo by Mr.Blinky July 2019
 
 // Thanks to Pharap for reformatting and reorganising code
+
+//This version uses Arduboy2 library drawBitmap() function instead of Sprites::drawPlusMask()
+
 // use D-Pad to move cursors 
 // A button to toggle Wall / no-wall tile
 // B button to toggle wall / no-wall border 
@@ -116,7 +119,7 @@ void drawWalls()
 				
 				const uint8_t decoded = wallDecode(leftWalls);
 				const uint8_t tileIndex = (getTile(x - 1, y + 1) == Tile::Wall) ? ((decoded >> 4) & 0x0F) : ((decoded >> 0) & 0x0F);
-				Sprites::drawSelfMasked(drawX, drawY, leftWallTiles, tileIndex);
+				arduboy.drawBitmap(drawX, drawY, leftWallTiles + (tileIndex << 2), 4, 8 , WHITE);
 			}
 
 			// Draw right tile
@@ -131,7 +134,7 @@ void drawWalls()
 
 				const uint8_t decoded = wallDecode(rightWalls);
 				const uint8_t tileIndex = (getTile(x + 1, y + 1) == Tile::Wall) ? ((decoded >> 4) & 0x0F) : ((decoded >> 0) & 0x0F);
-				Sprites::drawSelfMasked(drawX + 4, drawY, rightWallTiles, tileIndex);
+				arduboy.drawBitmap(drawX + 4, drawY, rightWallTiles + (tileIndex << 2), 4, 8, WHITE);
 			}
 		}
 }
@@ -162,7 +165,7 @@ void loop()
 
 	drawWalls();
 	
-	Sprites::drawPlusMask((cursor.x * tileWidth), (cursor.y * tileHeight), cursorSprite, cursorFrame);
+	arduboy.drawBitmap((cursor.x * tileWidth), (cursor.y * tileHeight), cursorBitmap + (cursorFrame * 8), 8, 8, INVERT);
 	
 	arduboy.display(CLEAR_BUFFER);
 }
