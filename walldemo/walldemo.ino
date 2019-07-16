@@ -8,8 +8,8 @@
 #include "Images.h"
 
 #define WALL 0x01
-#define MAP_WIDTH (WIDTH / 8)
-#define MAP_HEIGHT (HEIGHT / 8)
+constexpr uint8_t mapWidth = (WIDTH / 8);
+constexpr uint8_t mapHeight = (HEIGHT / 8);
 
 uint8_t mapBuffer[8][16]
 {
