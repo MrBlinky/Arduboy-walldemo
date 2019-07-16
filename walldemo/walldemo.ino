@@ -66,10 +66,16 @@ void handleInput()
 	}
 	
 	// Keep y in range 0..7
-	cursor.y %= mapHeight;
+	// Cheaper than `cursor.y %= mapHeight;`
+	// The compiler can't make this optimisation for signed types
+	// because of the rule about `%` taking the sign of the dividend (the left hand side).
+	cursor.y &= (mapHeight - 1);
 	
 	// Keep x in range 0..15
-	cursor.x %= mapWidth;
+	// Cheaper than `cursor.x %= mapWidth;`
+	// The compiler can't make this optimisation for signed types
+	// because of the rule about `%` taking the sign of the dividend (the left hand side).
+	cursor.x &= (mapWidth - 1);
 	
 	if (arduboy.justPressed(A_BUTTON) || (arduboy.pressed(A_BUTTON) && cursorChanged))
 		toggle(mapBuffer[cursor.y][cursor.x]);
@@ -144,7 +150,10 @@ void loop()
 		
 	// 4 frames
 	if (arduboy.everyXFrames(7))
-		cursorFrame = ((cursorFrame + 1) % 4);
+	{
+		++cursorFrame;
+		cursorFrame %= 4;
+	}
 	
 	cursorChanged = false;
 	
