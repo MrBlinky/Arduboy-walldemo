@@ -5,78 +5,164 @@
 // B button to toggle wall / no-wall border 
 
 #include <Arduboy2.h>
-#include "leftwalltiles.h"
-#include "rightwalltiles.h"
-#include "cursorsprite.h"
-#include "map.h"
-#include "tables.h"
-
-
-#define WALL 0x01
-#define MAP_WIDTH (WIDTH / 8)
-#define MAP_HEIGHT (HEIGHT / 8)
+#include "Images.h"
+#include "Walls.h"
+#include "Tile.h"
+#include "WallDecode.h"
 
 Arduboy2Base arduboy;
-uint8_t borderTile; 
+Tile borderTile = Tile::Empty;
 Point cursor;
-bool cursor_changed;
-uint8_t cursor_frame;
+bool cursorChanged;
+uint8_t cursorFrame;
+
+constexpr uint8_t tileWidth = 8;
+constexpr uint8_t tileHeight = 8;
+
+constexpr uint8_t mapWidth = (WIDTH / tileWidth);
+constexpr uint8_t mapHeight = (HEIGHT / tileHeight);
+
+Tile mapBuffer[mapHeight][mapWidth]
+{
+	{ Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall },
+	{ Tile::Wall, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall },
+	{ Tile::Wall, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Wall },
+	{ Tile::Wall, Tile::Empty, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Wall },
+	{ Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Wall }, 
+	{ Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Empty, Tile::Empty, Tile::Wall, Tile::Wall, Tile::Wall },
+	{ Tile::Wall, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall, Tile::Empty, Tile::Wall }, 
+	{ Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall, Tile::Wall },
+};
+
+inline Tile getTile(int8_t x, int8_t y)
+{
+	return ((x < 0) || (x >= mapWidth) || (y < 0) || (y >= mapHeight)) ? borderTile : mapBuffer[y][x];
+}
+
+void handleInput()
+{
+	if (arduboy.justPressed(UP_BUTTON))
+	{
+		--cursor.y;
+		cursorChanged = true;
+	}
+	
+	if (arduboy.justPressed(DOWN_BUTTON))
+	{
+		++cursor.y;
+		cursorChanged = true;
+	}
+	
+	if (arduboy.justPressed(LEFT_BUTTON))
+	{
+		--cursor.x;
+		cursorChanged = true;
+	}
+	
+	if (arduboy.justPressed(RIGHT_BUTTON))
+	{
+		++cursor.x;
+		cursorChanged = true;
+	}
+	
+	// Keep y in range 0..7
+	// Cheaper than `cursor.y %= mapHeight;`
+	// The compiler can't make this optimisation for signed types
+	// because of the rule about `%` taking the sign of the dividend (the left hand side).
+	cursor.y &= (mapHeight - 1);
+	
+	// Keep x in range 0..15
+	// Cheaper than `cursor.x %= mapWidth;`
+	// The compiler can't make this optimisation for signed types
+	// because of the rule about `%` taking the sign of the dividend (the left hand side).
+	cursor.x &= (mapWidth - 1);
+	
+	if (arduboy.justPressed(A_BUTTON) || (arduboy.pressed(A_BUTTON) && cursorChanged))
+		toggle(mapBuffer[cursor.y][cursor.x]);
+		
+	if (arduboy.justPressed(B_BUTTON))
+		toggle(borderTile);
+}
+
+void drawWalls()
+{
+	for (int8_t y = 0; y < mapHeight; ++y)
+		for (int8_t x = 0; x < mapWidth; ++x)
+		{
+			if (getTile(x, y) != Tile::Wall)
+				continue;
+				
+			const uint8_t drawX = (x * tileWidth);
+			const uint8_t drawY = (y * tileHeight);
+
+			Walls verticalWalls = Walls::None;
+
+			if (getTile(x, y - 1) == Tile::Wall)
+				verticalWalls |= Walls::Above;
+
+			if (getTile(x, y + 1) == Tile::Wall)
+				verticalWalls |= Walls::Below;
+
+			// Draw left tile
+			{
+				Walls leftWalls = verticalWalls;
+			
+				if (getTile(x - 1, y) == Tile::Wall)
+					leftWalls |= Walls::Side;
+
+				if (getTile(x - 1, y - 1) == Tile::Wall)
+					leftWalls |= Walls::Corner;
+				
+				const uint8_t decoded = wallDecode(leftWalls);
+				const uint8_t tileIndex = (getTile(x - 1, y + 1) == Tile::Wall) ? ((decoded >> 4) & 0x0F) : ((decoded >> 0) & 0x0F);
+				Sprites::drawSelfMasked(drawX, drawY, leftWallTiles, tileIndex);
+			}
+
+			// Draw right tile
+			{
+				Walls rightWalls = verticalWalls;
+				
+				if (getTile(x + 1, y) == Tile::Wall)
+					rightWalls |= Walls::Side;
+
+				if (getTile(x + 1, y - 1) == Tile::Wall)
+					rightWalls |= Walls::Corner;
+
+				const uint8_t decoded = wallDecode(rightWalls);
+				const uint8_t tileIndex = (getTile(x + 1, y + 1) == Tile::Wall) ? ((decoded >> 4) & 0x0F) : ((decoded >> 0) & 0x0F);
+				Sprites::drawSelfMasked(drawX + 4, drawY, rightWallTiles, tileIndex);
+			}
+		}
+}
 
 void setup()
 {
-  arduboy.boot(); //minimal boot
-}
-
-uint8_t getTile(int x, int y)
-{
-  if ((x < 0) || (x >= WIDTH) || (y < 0) || (y >= HEIGHT)) return borderTile;
-  return mapBuffer[y / 8][x / 8];
-}
-
-void  drawWalls()
-{
-  for (int y = 0; y < HEIGHT; y += 8)
-    for (int x = 0; x < WIDTH; x += 8)
-    {
-     //// draw outlined wall tiles ////
-     if (getTile(x,y) == WALL)
-     {
-       uint8_t wall=0;
-       if (getTile(x + 0, y - 8) == WALL) wall += 0x01;
-       if (getTile(x - 8, y + 0) == WALL) wall += 0x02;
-       if (getTile(x + 0, y + 8) == WALL) wall += 0x04;
-       if (getTile(x - 8, y - 8) == WALL) wall += 0x08;
-       uint8_t tile = pgm_read_byte(&wallDecodeTable[wall]);
-       if (getTile(x - 8, y + 8) == WALL) tile = tile / 16;
-       tile &= 0x0F;
-       Sprites::drawSelfMasked(x, y, leftwalltiles, tile);
-       wall &= 0x05; //clear left walls
-       if (getTile(x + 8, y + 0) == WALL) wall += 0x02;
-       if (getTile(x + 8, y - 8) == WALL) wall += 0x08;
-       tile = pgm_read_byte(&wallDecodeTable[wall]);
-       if (getTile(x + 8, y + 8) == WALL) tile = tile / 16;
-       tile &= 0x0F;
-       Sprites::drawSelfMasked(x+4, y, rightwalltiles, tile);
-     }    
-    }
+	arduboy.boot(); //minimal boot
 }
 
 void loop()
 {
-  if (!arduboy.nextFrame()) return; //wait for start of frame
-  if (arduboy.everyXFrames(7)) cursor_frame = (cursor_frame + 1) & 3;// 4 frames
-  arduboy.pollButtons();
-  cursor_changed = false;  
-  if (arduboy.justPressed(UP_BUTTON)) {cursor.y--; cursor_changed = true;}
-  if (arduboy.justPressed(DOWN_BUTTON)) {cursor.y++; cursor_changed = true;}
-  if (arduboy.justPressed(LEFT_BUTTON)) {cursor.x--; cursor_changed = true;}
-  if (arduboy.justPressed(RIGHT_BUTTON)) {cursor.x++; cursor_changed = true;}
-  cursor.y &= 0x07; //keep y in range 0..7
-  cursor.x &= 0x0F; //keep x in range 0..15
-  if (arduboy.justPressed(A_BUTTON) || (arduboy.pressed(A_BUTTON) && cursor_changed)) mapBuffer[cursor.y][cursor.x] ^= WALL;
-  if (arduboy.justPressed(B_BUTTON)) borderTile ^= WALL;
-  drawWalls();
-  Sprites::drawPlusMask(cursor.x * 8, cursor.y * 8, cursorsprite, cursor_frame);
-  arduboy.display(CLEAR_BUFFER);
+	// Wait for start of frame
+	if (!arduboy.nextFrame())
+		return;
+		
+	arduboy.pollButtons();
+		
+	// 4 frames
+	if (arduboy.everyXFrames(7))
+	{
+		++cursorFrame;
+		cursorFrame %= 4;
+	}
+	
+	cursorChanged = false;
+	
+	handleInput();
+
+	drawWalls();
+	
+	Sprites::drawPlusMask((cursor.x * tileWidth), (cursor.y * tileHeight), cursorSprite, cursorFrame);
+	
+	arduboy.display(CLEAR_BUFFER);
 }
 
